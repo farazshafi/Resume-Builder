@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Resume {
+  id                   String   @id @default(uuid())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  // Personal Details
+  fullName             String
+  email                String
+  phone                String?
+  location             String?
+  linkedIn             String?
+  website              String?
+
+  // Content (Stored as JSON for flexibility in V1)
+  education            Json     
+  skills               Json     // { technical: string[], soft: string[] }
+  certifications       Json?    
+  projects             Json     
+  experience           Json?    
+  
+  // Job Description used for tailoring
+  targetJobDescription String?
+  
+  // Final optimized content
+  generatedContent     Json?    
+}
