@@ -1,0 +1,39 @@
+export interface Education {
+    institution: string;
+    degree: string;
+    graduationDate: string;
+    location?: string;
+}
+
+export interface Experience {
+    company: string;
+    role: string;
+    duration: string;
+    location?: string;
+    bullets: string[];
+}
+
+export interface Project {
+    title: string;
+    description: string[];
+    technologies: string[];
+    link?: string;
+}
+
+export interface ResumeData {
+    fullName: string;
+    email: string;
+    phone?: string;
+    location?: string;
+    linkedIn?: string;
+    website?: string;
+    education: Education[];
+    experience: Experience[];
+    skills: {
+        technical: string[];
+        soft: string[];
+    };
+    projects: Project[];
+    certifications?: string[];
+    targetJobDescription?: string;
+}
