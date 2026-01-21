@@ -19,12 +19,13 @@ model Resume {
   location             String?
   linkedIn             String?
   website              String?
+  summary              String?
 
   // Content (Stored as JSON for flexibility in V1)
   education            Json     
   skills               Json     // { technical: string[], soft: string[] }
   certifications       Json?    
-  projects             Json     
+  projects             Json?    
   experience           Json?    
   
   // Job Description used for tailoring

@@ -27,7 +27,14 @@ export const resumeTemplate = (data: any) => `
         ${data.website ? ` | ${data.website}` : ''}
     </div>
 
-    ${data.experience ? `
+    ${data.summary ? `
+    <div class="section">
+        <div class="section-title">Summary</div>
+        <div>${data.summary}</div>
+    </div>
+    ` : ''}
+
+    ${data.experience && data.experience.length > 0 ? `
     <div class="section">
         <div class="section-title">Experience</div>
         ${data.experience.map((exp: any) => `
@@ -45,6 +52,30 @@ export const resumeTemplate = (data: any) => `
     ` : ''}
 
     <div class="section">
+        <div class="section-title">Skills</div>
+        <div><strong>Technical:</strong> ${data.skills.technical.join(', ')}</div>
+        <div><strong>Soft Skills:</strong> ${data.skills.soft.join(', ')}</div>
+    </div>
+
+    ${data.projects && data.projects.length > 0 ? `
+    <div class="section">
+        <div class="section-title">Projects</div>
+        ${data.projects.map((proj: any) => `
+            <div class="item">
+                <div class="item-header">
+                    <span>${proj.title}</span>
+                </div>
+                <div style="font-size: 0.9em; margin-bottom: 5px;">${proj.technologies.join(', ')}</div>
+                <div style="font-size: 0.95em; margin-bottom: 5px;">${proj.description}</div>
+                <ul class="bullets">
+                    ${proj.bullets.map((desc: string) => `<li>${desc}</li>`).join('')}
+                </ul>
+            </div>
+        `).join('')}
+    </div>
+    ` : ''}
+
+    <div class="section" style="page-break-inside: avoid;">
         <div class="section-title">Education</div>
         ${data.education.map((edu: any) => `
             <div class="item">
@@ -56,29 +87,6 @@ export const resumeTemplate = (data: any) => `
             </div>
         `).join('')}
     </div>
-
-    <div class="section">
-        <div class="section-title">Skills</div>
-        <div><strong>Technical:</strong> ${data.skills.technical.join(', ')}</div>
-        <div><strong>Soft Skills:</strong> ${data.skills.soft.join(', ')}</div>
-    </div>
-
-    ${data.projects ? `
-    <div class="section">
-        <div class="section-title">Projects</div>
-        ${data.projects.map((proj: any) => `
-            <div class="item">
-                <div class="item-header">
-                    <span>${proj.title}</span>
-                </div>
-                <div style="font-size: 0.9em; margin-bottom: 5px;">${proj.technologies.join(', ')}</div>
-                <ul class="bullets">
-                    ${proj.description.map((desc: string) => `<li>${desc}</li>`).join('')}
-                </ul>
-            </div>
-        `).join('')}
-    </div>
-    ` : ''}
 </body>
 </html>
 `;

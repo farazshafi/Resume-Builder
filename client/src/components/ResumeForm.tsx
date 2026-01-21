@@ -11,7 +11,7 @@ interface ResumeFormProps {
 
 export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) {
     const [step, setStep] = useState(1);
-    const totalSteps = 4;
+    const totalSteps = 5;
 
     const updateData = (newData: Partial<ResumeData>) => setData({ ...data, ...newData });
 
@@ -23,6 +23,12 @@ export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) 
     const addEducation = () => {
         const newEdu: Education = { institution: '', degree: '', graduationDate: '' };
         updateData({ education: [...(data.education || []), newEdu] });
+    };
+
+    const addProject = () => {
+        if ((data.projects?.length || 0) >= 5) return alert('Maximum 5 projects allowed');
+        const newProj: any = { title: '', description: '', bullets: [''], technologies: [] };
+        updateData({ projects: [...(data.projects || []), newProj] });
     };
 
     const handleGenerate = async () => {
@@ -108,12 +114,21 @@ export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) 
                                 onChange={e => updateData({ location: e.target.value })}
                             />
                         </div>
+                        <div className="space-y-2">
+                            <h4 className="text-sm font-medium text-gray-400">Professional Summary (Optional)</h4>
+                            <textarea
+                                className="input-field w-full h-24"
+                                placeholder="Briefly describe your professional background..."
+                                value={data.summary || ''}
+                                onChange={e => updateData({ summary: e.target.value })}
+                            />
+                        </div>
                     </div>
                 )}
 
                 {step === 2 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                        <h3 className="text-lg font-medium text-blue-400">Experience & Education</h3>
+                        <h3 className="text-lg font-medium text-blue-400">Experience (Optional)</h3>
 
                         <div className="space-y-4">
                             {data.experience?.map((exp, i) => (
@@ -138,6 +153,16 @@ export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) 
                                             updateData({ experience: newExp });
                                         }}
                                     />
+                                    <input
+                                        className="input-field w-full text-sm opacity-70"
+                                        placeholder="Duration (e.g. Jan 2020 - Present)"
+                                        value={exp.duration}
+                                        onChange={e => {
+                                            const newExp = [...(data.experience || [])];
+                                            newExp[i].duration = e.target.value;
+                                            updateData({ experience: newExp });
+                                        }}
+                                    />
                                     <div className="space-y-2">
                                         <p className="text-xs text-gray-500 uppercase font-bold">Bullets</p>
                                         {exp.bullets.map((bullet, bi) => (
@@ -153,7 +178,26 @@ export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) 
                                                 }}
                                             />
                                         ))}
+                                        <button
+                                            onClick={() => {
+                                                const newExp = [...(data.experience || [])];
+                                                newExp[i].bullets.push('');
+                                                updateData({ experience: newExp });
+                                            }}
+                                            className="text-xs text-blue-500 hover:text-blue-400"
+                                        >
+                                            + Add Bullet
+                                        </button>
                                     </div>
+                                    <button
+                                        onClick={() => {
+                                            const newExp = data.experience?.filter((_, index) => index !== i);
+                                            updateData({ experience: newExp });
+                                        }}
+                                        className="absolute top-2 right-2 text-red-500/50 hover:text-red-500"
+                                    >
+                                        Remove
+                                    </button>
                                 </div>
                             ))}
                             <button onClick={addExperience} className="btn-secondary w-full py-4 border-dashed border-2 hover:border-blue-500/50">
@@ -161,9 +205,10 @@ export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) 
                             </button>
                         </div>
 
+                        <h3 className="text-lg font-medium text-blue-400 mt-8">Education</h3>
                         <div className="space-y-4">
                             {data.education?.map((edu, i) => (
-                                <div key={i} className="p-4 border border-white/10 rounded-lg space-y-3 bg-white/5">
+                                <div key={i} className="p-4 border border-white/10 rounded-lg space-y-3 bg-white/5 relative">
                                     <input
                                         className="input-field w-full bg-transparent border-none p-0 focus:ring-0 text-white font-medium"
                                         placeholder="Institution"
@@ -174,6 +219,35 @@ export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) 
                                             updateData({ education: newEdu });
                                         }}
                                     />
+                                    <input
+                                        className="input-field w-full text-sm opacity-70"
+                                        placeholder="Degree & Major"
+                                        value={edu.degree}
+                                        onChange={e => {
+                                            const newEdu = [...(data.education || [])];
+                                            newEdu[i].degree = e.target.value;
+                                            updateData({ education: newEdu });
+                                        }}
+                                    />
+                                    <input
+                                        className="input-field w-full text-sm opacity-70"
+                                        placeholder="Graduation Date"
+                                        value={edu.graduationDate}
+                                        onChange={e => {
+                                            const newEdu = [...(data.education || [])];
+                                            newEdu[i].graduationDate = e.target.value;
+                                            updateData({ education: newEdu });
+                                        }}
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            const newEdu = data.education?.filter((_, index) => index !== i);
+                                            updateData({ education: newEdu });
+                                        }}
+                                        className="absolute top-2 right-2 text-red-500/50 hover:text-red-500"
+                                    >
+                                        Remove
+                                    </button>
                                 </div>
                             ))}
                             <button onClick={addEducation} className="btn-secondary w-full py-4 border-dashed border-2 hover:border-blue-500/50">
@@ -184,29 +258,121 @@ export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) 
                 )}
 
                 {step === 3 && (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
-                        <h3 className="text-lg font-medium text-blue-400">Skills & Projects</h3>
-                        <textarea
-                            className="input-field w-full h-32"
-                            placeholder="Technical Skills (comma separated)"
-                            value={data.skills?.technical.join(', ')}
-                            onChange={e => updateData({ skills: { ...data.skills!, technical: e.target.value.split(',').map(s => s.trim()) } })}
-                        />
-                        <textarea
-                            className="input-field w-full h-32"
-                            placeholder="Soft Skills (comma separated)"
-                            value={data.skills?.soft.join(', ')}
-                            onChange={e => updateData({ skills: { ...data.skills!, soft: e.target.value.split(',').map(s => s.trim()) } })}
-                        />
+                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-medium text-blue-400">Projects (Optional, up to 5)</h3>
+                            <span className="text-xs text-gray-500">{data.projects?.length || 0} / 5</span>
+                        </div>
+
+                        <div className="space-y-4">
+                            {data.projects?.map((proj, i) => (
+                                <div key={i} className="p-4 border border-white/10 rounded-lg space-y-3 bg-white/5 relative group">
+                                    <input
+                                        className="input-field w-full bg-transparent border-none p-0 focus:ring-0 text-white font-medium text-lg"
+                                        placeholder="Project Title"
+                                        value={proj.title}
+                                        onChange={e => {
+                                            const newProj = [...(data.projects || [])];
+                                            newProj[i].title = e.target.value;
+                                            updateData({ projects: newProj });
+                                        }}
+                                    />
+                                    <textarea
+                                        className="input-field w-full text-sm"
+                                        placeholder="Project Brief Description"
+                                        value={proj.description}
+                                        onChange={e => {
+                                            const newProj = [...(data.projects || [])];
+                                            newProj[i].description = e.target.value;
+                                            updateData({ projects: newProj });
+                                        }}
+                                    />
+                                    <div className="space-y-2">
+                                        <p className="text-xs text-gray-500 uppercase font-bold">Key Achievements (Bullets)</p>
+                                        {proj.bullets.map((bullet: string, bi: number) => (
+                                            <input
+                                                key={bi}
+                                                className="input-field w-full text-sm"
+                                                placeholder="What did you build/achieve?"
+                                                value={bullet}
+                                                onChange={e => {
+                                                    const newProj = [...(data.projects || [])];
+                                                    newProj[i].bullets[bi] = e.target.value;
+                                                    updateData({ projects: newProj });
+                                                }}
+                                            />
+                                        ))}
+                                        <button
+                                            onClick={() => {
+                                                const newProj = [...(data.projects || [])];
+                                                newProj[i].bullets.push('');
+                                                updateData({ projects: newProj });
+                                            }}
+                                            className="text-xs text-blue-500 hover:text-blue-400"
+                                        >
+                                            + Add Bullet
+                                        </button>
+                                    </div>
+                                    <input
+                                        className="input-field w-full text-sm"
+                                        placeholder="Tech Stack (comma separated)"
+                                        value={proj.technologies.join(', ')}
+                                        onChange={e => {
+                                            const newProj = [...(data.projects || [])];
+                                            newProj[i].technologies = e.target.value.split(',').map((s: string) => s.trim());
+                                            updateData({ projects: newProj });
+                                        }}
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            const newProj = data.projects?.filter((_, index) => index !== i);
+                                            updateData({ projects: newProj });
+                                        }}
+                                        className="absolute top-2 right-2 text-red-500/50 hover:text-red-500"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
+                            {(data.projects?.length || 0) < 5 && (
+                                <button onClick={addProject} className="btn-secondary w-full py-4 border-dashed border-2 hover:border-blue-500/50">
+                                    + Add Project
+                                </button>
+                            )}
+                        </div>
                     </div>
                 )}
 
                 {step === 4 && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                        <h3 className="text-lg font-medium text-blue-400">Skills</h3>
+                        <div className="space-y-2">
+                            <h4 className="text-sm font-medium text-gray-400">Technical Skills</h4>
+                            <textarea
+                                className="input-field w-full h-32"
+                                placeholder="E.g. React, Node.js, TypeScript, Docker, etc. (comma separated)"
+                                value={data.skills?.technical.join(', ')}
+                                onChange={e => updateData({ skills: { ...data.skills!, technical: e.target.value.split(',').map(s => s.trim()) } })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <h4 className="text-sm font-medium text-gray-400">Soft Skills</h4>
+                            <textarea
+                                className="input-field w-full h-32"
+                                placeholder="E.g. Leadership, Communication, Problem Solving, etc. (comma separated)"
+                                value={data.skills?.soft.join(', ')}
+                                onChange={e => updateData({ skills: { ...data.skills!, soft: e.target.value.split(',').map(s => s.trim()) } })}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {step === 5 && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
                         <h3 className="text-lg font-medium text-blue-400">Target Job</h3>
                         <textarea
                             className="input-field w-full h-64"
-                            placeholder="Paste job description here..."
+                            placeholder="Paste the job description you are applying for..."
                             value={data.targetJobDescription || ''}
                             onChange={e => updateData({ targetJobDescription: e.target.value })}
                         />

@@ -31,12 +31,25 @@ export class ResumeService implements IResumeService {
             }))
         );
 
+        const projects = (resume.projects as any[]) || [];
+        const bestProjects = await this.llmService.selectBestProjects(projects, jobDescription);
+        const optimizedProjects = await Promise.all(
+            bestProjects.map(async (proj) => ({
+                ...proj,
+                bullets: await this.llmService.optimizeBullets(proj.bullets || [], jobDescription)
+            }))
+        );
+
+        const optimizedSkills = await this.llmService.optimizeSkills(resume.skills, jobDescription);
+
         const tailoredContent = {
             ...resume,
             targetJobDescription: jobDescription,
             generatedContent: {
                 ...resume,
-                experience: optimizedExp,
+                experience: optimizedExp.length > 0 ? optimizedExp : undefined,
+                projects: optimizedProjects.length > 0 ? optimizedProjects : undefined,
+                skills: optimizedSkills,
                 summary: await this.llmService.generateSummary(resume, jobDescription)
             }
         };

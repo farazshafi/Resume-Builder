@@ -65,4 +65,72 @@ export class LlmService implements ILlmService {
             return 'Professional dedicated to achieving excellence and contributing value in high-impact projects.';
         }
     }
+
+    async selectBestProjects(projects: any[], jobDescription: string): Promise<any[]> {
+        if (!process.env.GEMINI_API_KEY || projects.length <= 2) {
+            return projects.slice(0, 2);
+        }
+
+        const projectList = projects.map((p, i) => `${i}: ${p.title} - ${p.description}`).join('\n');
+        const prompt = `
+      Given the following list of projects and a target job description, select the TOP 2 projects that are most relevant and impactful for this role.
+      
+      Job Description: ${jobDescription}
+      
+      Projects:
+      ${projectList}
+      
+      Return ONLY a JSON array of the indices (e.g., [0, 2]).
+    `;
+
+        try {
+            const result = await this.model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text().trim();
+            const match = text.match(/\[.*\]/);
+            if (match) {
+                const indices = JSON.parse(match[0]);
+                return indices.map((i: number) => projects[i]).filter(Boolean);
+            }
+            return projects.slice(0, 2);
+        } catch (error) {
+            console.error('Gemini API Error selecting projects:', error);
+            return projects.slice(0, 2);
+        }
+    }
+
+    async optimizeSkills(skills: { technical: string[], soft: string[] }, jobDescription: string): Promise<{ technical: string[], soft: string[] }> {
+        if (!process.env.GEMINI_API_KEY) {
+            return skills;
+        }
+
+        const prompt = `
+      Given the following technical and soft skills and a target job description, filter out the skills that are NOT relevant or useful for this specific job.
+      
+      Job Description: ${jobDescription}
+      
+      Technical Skills: ${skills.technical.join(', ')}
+      Soft Skills: ${skills.soft.join(', ')}
+      
+      Return the filtered skills in the following JSON format:
+      {
+        "technical": ["skill1", "skill2"],
+        "soft": ["skill1", "skill2"]
+      }
+    `;
+
+        try {
+            const result = await this.model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text().trim();
+            const match = text.match(/\{.*\}/s);
+            if (match) {
+                return JSON.parse(match[0]);
+            }
+            return skills;
+        } catch (error) {
+            console.error('Gemini API Error optimizing skills:', error);
+            return skills;
+        }
+    }
 }

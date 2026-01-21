@@ -15,7 +15,8 @@ export interface Experience {
 
 export interface Project {
     title: string;
-    description: string[];
+    description: string;
+    bullets: string[];
     technologies: string[];
     link?: string;
 }
@@ -29,12 +30,12 @@ export interface ResumeData {
     linkedIn?: string;
     website?: string;
     education: Education[];
-    experience: Experience[];
+    experience?: Experience[];
     skills: {
         technical: string[];
         soft: string[];
     };
-    projects: Project[];
+    projects?: Project[];
     certifications?: string[];
     targetJobDescription?: string;
 }
