@@ -1,5 +1,5 @@
-export interface IResumeRepository {
-    create(data: any): Promise<any>;
-    findById(id: string): Promise<any>;
-    update(id: string, data: any): Promise<any>;
+import { IBaseRepository } from './IBaseRepository';
+
+export interface IResumeRepository extends IBaseRepository<any> {
+    // Add any Resume specific methods here if needed
 }

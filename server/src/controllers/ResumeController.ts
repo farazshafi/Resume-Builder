@@ -13,6 +13,15 @@ export class ResumeController {
         }
     }
 
+    async getAll(req: Request, res: Response) {
+        try {
+            const resumes = await this.resumeService.getAllResumes();
+            res.status(200).json(resumes);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
     async getById(req: Request, res: Response) {
         try {
             const id = req.params.id as string;
@@ -45,6 +54,16 @@ export class ResumeController {
                 'Content-Length': pdf.length
             });
             res.send(pdf);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async delete(req: Request, res: Response) {
+        try {
+            const id = req.params.id as string;
+            await this.resumeService.deleteResume(id);
+            res.status(204).send();
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }

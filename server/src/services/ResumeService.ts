@@ -19,6 +19,14 @@ export class ResumeService implements IResumeService {
         return this.resumeRepository.findById(id);
     }
 
+    async getAllResumes(): Promise<any[]> {
+        return this.resumeRepository.findAll();
+    }
+
+    async deleteResume(id: string): Promise<any> {
+        return this.resumeRepository.delete(id);
+    }
+
     async generateTailoredResume(id: string, jobDescription: string): Promise<any> {
         const resume = await this.resumeRepository.findById(id);
         if (!resume) throw new Error('Resume not found');

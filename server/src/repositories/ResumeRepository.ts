@@ -1,21 +1,19 @@
 import { IResumeRepository } from '../interfaces/IResumeRepository';
+import { BaseRepository } from './BaseRepository';
 import prisma from '../config/prisma';
 
-export class ResumeRepository implements IResumeRepository {
-    async create(data: any): Promise<any> {
+export class ResumeRepository extends BaseRepository<any> implements IResumeRepository {
+    constructor() {
+        super(prisma, prisma.resume);
+    }
+
+    override async create(data: any): Promise<any> {
         const { id, createdAt, updatedAt, ...validData } = data;
-        return prisma.resume.create({ data: validData });
+        return super.create(validData);
     }
 
-    async findById(id: string): Promise<any> {
-        return prisma.resume.findUnique({ where: { id } });
-    }
-
-    async update(id: string, data: any): Promise<any> {
+    override async update(id: string, data: any): Promise<any> {
         const { id: _, createdAt, updatedAt, ...validData } = data;
-        return prisma.resume.update({
-            where: { id },
-            data: validData
-        });
+        return super.update(id, validData);
     }
 }

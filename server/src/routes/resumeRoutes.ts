@@ -13,8 +13,10 @@ const resumeService = new ResumeService(resumeRepository, pdfService, llmService
 const resumeController = new ResumeController(resumeService);
 
 router.post('/', (req: Request, res: Response) => resumeController.create(req, res));
+router.get('/', (req: Request, res: Response) => resumeController.getAll(req, res));
 router.get('/:id', (req: Request, res: Response) => resumeController.getById(req, res));
 router.post('/:id/generate', (req: Request, res: Response) => resumeController.generate(req, res));
 router.get('/:id/download', (req: Request, res: Response) => resumeController.downloadPdf(req, res));
+router.delete('/:id', (req: Request, res: Response) => resumeController.delete(req, res));
 
 export default router;
