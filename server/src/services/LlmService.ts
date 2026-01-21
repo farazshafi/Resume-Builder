@@ -99,22 +99,28 @@ export class LlmService implements ILlmService {
         }
     }
 
-    async optimizeSkills(skills: { technical: string[], soft: string[] }, jobDescription: string): Promise<{ technical: string[], soft: string[] }> {
+    async optimizeSkills(skills: { technical: string[], soft: string[] }, jobDescription: string): Promise<{ technical: Record<string, string[]>, soft: string[] }> {
         if (!process.env.GEMINI_API_KEY) {
-            return skills;
+            return { technical: { "Technical Skills": skills.technical }, soft: skills.soft };
         }
 
         const prompt = `
-      Given the following technical and soft skills and a target job description, filter out the skills that are NOT relevant or useful for this specific job.
-      
+      Given the following technical and soft skills and a target job description:
+      1. Filter out technical skills that are NOT relevant to the job.
+      2. Categorize the remaining technical skills into logical groups (e.g., "Frontend", "Backend", "Languages", "Tools", "Cloud", etc.) that would look professional on a resume.
+      3. Filter out soft skills that are NOT relevant.
+
       Job Description: ${jobDescription}
       
       Technical Skills: ${skills.technical.join(', ')}
       Soft Skills: ${skills.soft.join(', ')}
       
-      Return the filtered skills in the following JSON format:
+      Return the result in the following JSON format ONLY:
       {
-        "technical": ["skill1", "skill2"],
+        "technical": {
+          "Category Name": ["skill1", "skill2"],
+          "Another Category": ["skill3"]
+        },
         "soft": ["skill1", "skill2"]
       }
     `;
@@ -127,10 +133,10 @@ export class LlmService implements ILlmService {
             if (match) {
                 return JSON.parse(match[0]);
             }
-            return skills;
+            return { technical: { "Technical Skills": skills.technical }, soft: skills.soft };
         } catch (error) {
             console.error('Gemini API Error optimizing skills:', error);
-            return skills;
+            return { technical: { "Technical Skills": skills.technical }, soft: skills.soft };
         }
     }
 }
