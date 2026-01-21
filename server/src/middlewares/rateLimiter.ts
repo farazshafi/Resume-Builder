@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import redisClient from '../config/redis';
 
 export const rateLimiter = async (req: Request, res: Response, next: NextFunction) => {
+    if (process.env.ENABLE_REDIS !== 'true') {
+        return next();
+    }
+
     const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
     const key = `ratelimit:${ip}`;
 

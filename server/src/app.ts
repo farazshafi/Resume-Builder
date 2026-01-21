@@ -10,7 +10,9 @@ dotenv.config();
 
 const app = express();
 
-connectRedis().catch(console.error);
+if (process.env.ENABLE_REDIS === 'true') {
+    connectRedis().catch(console.error);
+}
 
 app.use(helmet());
 app.use(cors());
