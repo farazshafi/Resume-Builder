@@ -1,12 +1,12 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
 import resumeRoutes from './routes/resumeRoutes';
 import { connectRedis } from './config/redis';
 import { rateLimiter } from './middlewares/rateLimiter';
-
-dotenv.config();
 
 const app = express();
 

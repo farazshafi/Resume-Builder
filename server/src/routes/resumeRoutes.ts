@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { ResumeController } from '../controllers/ResumeController';
 import { ResumeService } from '../services/ResumeService';
 import { ResumeRepository } from '../repositories/ResumeRepository';

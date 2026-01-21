@@ -34,6 +34,11 @@ export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
+
+            if (!createRes.ok) {
+                const errorData = await createRes.json();
+                throw new Error(errorData.error || 'Failed to create resume');
+            }
             const resume = await createRes.json();
 
             // 2. Generate tailored content
@@ -42,14 +47,20 @@ export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ jobDescription: data.targetJobDescription })
             });
+
+            if (!generateRes.ok) {
+                const errorData = await generateRes.json();
+                throw new Error(errorData.error || 'Failed to generate content');
+            }
             const tailored = await generateRes.json();
 
             // 3. Update preview with tailored content
             setData(tailored.generatedContent);
             // Store ID for download
             (window as any).__RESUME_ID__ = resume.id;
-        } catch (error) {
+        } catch (error: any) {
             console.error('Generation failed:', error);
+            alert(error.message || 'Generation failed. Please check your connection and try again.');
         } finally {
             setIsGenerating(false);
         }
@@ -216,7 +227,7 @@ export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) 
                         Next Step
                     </button>
                 ) : (
-                    <button onClick={handleGenerate} className="btn-primary bg-gradient-to-r from-blue-500 to-purple-600 border-none shadow-blue-600/20">
+                    <button onClick={handleGenerate} className="btn-primary bg-linear-to-r from-blue-500 to-purple-600 border-none shadow-blue-600/20">
                         Generate Resume
                     </button>
                 )}

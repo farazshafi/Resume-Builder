@@ -23,11 +23,11 @@ export class ResumeService implements IResumeService {
         const resume = await this.resumeRepository.findById(id);
         if (!resume) throw new Error('Resume not found');
 
-        const exp = resume.experience as any[];
+        const exp = (resume.experience as any[]) || [];
         const optimizedExp = await Promise.all(
             exp.map(async (item) => ({
                 ...item,
-                bullets: await this.llmService.optimizeBullets(item.bullets, jobDescription)
+                bullets: await this.llmService.optimizeBullets(item.bullets || [], jobDescription)
             }))
         );
 

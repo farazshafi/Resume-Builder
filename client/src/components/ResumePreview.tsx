@@ -40,6 +40,13 @@ export function ResumePreview({ data, isGenerating }: ResumePreviewProps) {
                 </div>
             </header>
 
+            {/* Summary */}
+            {data.summary && (
+                <section className="mb-6">
+                    <p className="text-sm leading-relaxed text-gray-800">{data.summary}</p>
+                </section>
+            )}
+
             {/* Experience */}
             {data.experience && data.experience.length > 0 && (
                 <section className="mb-6">
