@@ -7,10 +7,11 @@ interface ResumeFormProps {
     data: Partial<ResumeData>;
     setData: (data: Partial<ResumeData>) => void;
     setIsGenerating: (is: boolean) => void;
+    initialStep?: number;
 }
 
-export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) {
-    const [step, setStep] = useState(1);
+export function ResumeForm({ data, setData, setIsGenerating, initialStep = 1 }: ResumeFormProps) {
+    const [step, setStep] = useState(initialStep);
     const totalSteps = 5;
 
     const updateData = (newData: Partial<ResumeData>) => setData({ ...data, ...newData });
