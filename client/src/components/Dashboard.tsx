@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ResumeCard } from './ResumeCard';
+import { ConfirmationModal } from './ConfirmationModal';
 
 interface DashboardProps {
     onCreateNew: () => void;
@@ -11,6 +12,8 @@ export function Dashboard({ onCreateNew }: DashboardProps) {
     const [resumes, setResumes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
 
     const fetchResumes = async () => {
         try {
@@ -30,15 +33,22 @@ export function Dashboard({ onCreateNew }: DashboardProps) {
         fetchResumes();
     }, []);
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this resume?')) return;
+    const handleDelete = (id: string) => {
+        setResumeToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!resumeToDelete) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/resumes/${id}`, {
+            const response = await fetch(`http://localhost:5000/api/resumes/${resumeToDelete}`, {
                 method: 'DELETE',
             });
             if (!response.ok) throw new Error('Failed to delete resume');
-            setResumes(resumes.filter(r => r.id !== id));
+            setResumes(resumes.filter(r => r.id !== resumeToDelete));
+            setIsDeleteModalOpen(false);
+            setResumeToDelete(null);
         } catch (err: any) {
             alert(err.message);
         }
@@ -110,6 +120,19 @@ export function Dashboard({ onCreateNew }: DashboardProps) {
                     ))}
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                title="Delete Resume"
+                message="Are you sure you want to delete this resume? This action cannot be undone."
+                confirmLabel="Delete"
+                onConfirm={confirmDelete}
+                onCancel={() => {
+                    setIsDeleteModalOpen(false);
+                    setResumeToDelete(null);
+                }}
+                isDanger={true}
+            />
         </div>
     );
 }

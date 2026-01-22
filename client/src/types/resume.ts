@@ -22,6 +22,7 @@ export interface Project {
 }
 
 export interface ResumeData {
+    title?: string;
     fullName: string;
     email: string;
     summary?: string;

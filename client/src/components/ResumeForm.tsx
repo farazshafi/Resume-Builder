@@ -91,6 +91,12 @@ export function ResumeForm({ data, setData, setIsGenerating }: ResumeFormProps) 
                         <div className="grid grid-cols-2 gap-4">
                             <input
                                 className="input-field col-span-2"
+                                placeholder="Resume Title (e.g. Resume for Google)"
+                                value={data.title || ''}
+                                onChange={e => updateData({ title: e.target.value })}
+                            />
+                            <input
+                                className="input-field col-span-2"
                                 placeholder="Full Name"
                                 value={data.fullName || ''}
                                 onChange={e => updateData({ fullName: e.target.value })}

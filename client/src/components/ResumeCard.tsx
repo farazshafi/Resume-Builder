@@ -3,6 +3,7 @@
 interface ResumeCardProps {
     resume: {
         id: string;
+        title?: string;
         fullName: string;
         email: string;
         updatedAt: string;
@@ -16,10 +17,10 @@ export function ResumeCard({ resume, onDelete, onView }: ResumeCardProps) {
         <div className="glass-card p-6 flex flex-col gap-4 group hover:border-white/20 transition-all">
             <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                    <h3 className="text-xl font-semibold text-white group-hover:text-blue-400 transition-colors">
-                        {resume.fullName}
+                    <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">
+                        {resume.title || 'Untitled Resume'}
                     </h3>
-                    <p className="text-gray-400 text-sm">{resume.email}</p>
+                    <p className="text-gray-400 text-sm font-medium">{resume.fullName}</p>
                 </div>
                 <button
                     onClick={() => onDelete(resume.id)}
