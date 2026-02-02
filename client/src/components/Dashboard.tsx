@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ResumeCard } from './ResumeCard';
 import { ConfirmationModal } from './ConfirmationModal';
+import api from '@/lib/api';
 
 interface DashboardProps {
     onCreateNew: () => void;
@@ -19,12 +20,10 @@ export function Dashboard({ onCreateNew, onSelect }: DashboardProps) {
     const fetchResumes = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:5000/api/resumes');
-            if (!response.ok) throw new Error('Failed to fetch resumes');
-            const data = await response.json();
-            setResumes(Array.isArray(data) ? data : []);
+            const response = await api.get('/resumes');
+            setResumes(Array.isArray(response.data) ? response.data : []);
         } catch (err: any) {
-            setError(err.message);
+            setError(err.response?.data?.message || err.message || 'Failed to fetch resumes');
         } finally {
             setLoading(false);
         }
@@ -43,15 +42,12 @@ export function Dashboard({ onCreateNew, onSelect }: DashboardProps) {
         if (!resumeToDelete) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/resumes/${resumeToDelete}`, {
-                method: 'DELETE',
-            });
-            if (!response.ok) throw new Error('Failed to delete resume');
+            await api.delete(`/resumes/${resumeToDelete}`);
             setResumes(resumes.filter(r => r.id !== resumeToDelete));
             setIsDeleteModalOpen(false);
             setResumeToDelete(null);
         } catch (err: any) {
-            alert(err.message);
+            alert(err.response?.data?.message || err.message || 'Failed to delete resume');
         }
     };
 
