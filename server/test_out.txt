@@ -1,0 +1,49 @@
+﻿[dotenv@17.2.3] injecting env (6) from .env -- tip: ≡ƒöÉ encrypt with Dotenvx: https://dotenvx.com
+--- Original Resume Content (Relevant parts) ---
+Projects: [ 'E-commerce Platform', 'Personal Gardening Blog' ]
+Skills: {
+  "technical": {
+    "Web Development": [
+      "React",
+      "Node.js",
+      "HTML",
+      "CSS"
+    ],
+    "Gardening": [
+      "Soil pH Testing",
+      "Pruning"
+    ]
+  },
+  "soft": [
+    "Communication",
+    "Problem Solving",
+    "Plant Care"
+  ]
+}
+
+--- Generating Tailored Resume ---
+
+--- Tailored Resume Results ---
+Projects kept: [ 'E-commerce Platform' ]
+Skills kept: {
+  "technical": {
+    "Frontend": [
+      "React",
+      "Next.js",
+      "HTML",
+      "CSS"
+    ],
+    "Backend": [
+      "Node.js"
+    ],
+    "Payment Processing": [
+      "Stripe"
+    ]
+  },
+  "soft": [
+    "Communication",
+    "Problem Solving"
+  ]
+}
+
+SUCCESS: Irrelevant gardening content was REMOVED.
