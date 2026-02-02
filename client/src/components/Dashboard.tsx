@@ -6,9 +6,10 @@ import { ConfirmationModal } from './ConfirmationModal';
 
 interface DashboardProps {
     onCreateNew: () => void;
+    onSelect: (resume: any) => void;
 }
 
-export function Dashboard({ onCreateNew }: DashboardProps) {
+export function Dashboard({ onCreateNew, onSelect }: DashboardProps) {
     const [resumes, setResumes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -20,8 +21,8 @@ export function Dashboard({ onCreateNew }: DashboardProps) {
             setLoading(true);
             const response = await fetch('http://localhost:5000/api/resumes');
             if (!response.ok) throw new Error('Failed to fetch resumes');
-            const data = await response.ok ? await response.json() : [];
-            setResumes(data);
+            const data = await response.json();
+            setResumes(Array.isArray(data) ? data : []);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -55,9 +56,8 @@ export function Dashboard({ onCreateNew }: DashboardProps) {
     };
 
     const handleView = (id: string) => {
-        // For now, we'll just alert. In a real app, this would navigate to an edit page.
-        // Or we could trigger the Manual mode with the resume data.
-        alert('Viewing resume ' + id);
+        const resume = resumes.find(r => r.id === id);
+        if (resume) onSelect(resume);
     };
 
     if (loading) return (

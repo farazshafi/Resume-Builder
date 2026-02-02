@@ -33,7 +33,7 @@ export interface ResumeData {
     education: Education[];
     experience?: Experience[];
     skills: {
-        technical: string[];
+        technical: string[] | Record<string, string[]>;
         soft: string[];
     };
     projects?: Project[];
