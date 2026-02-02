@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ProcessingModal } from './ProcessingModal';
+import api from '@/lib/api';
 
 interface ResumeUploadGeneratorProps {
     onBack: () => void;
@@ -35,17 +36,13 @@ export function ResumeUploadGenerator({ onBack, onSuccess }: ResumeUploadGenerat
 
         try {
             console.log('Sending upload request to backend...');
-            const response = await fetch('http://localhost:5000/api/resumes/upload', {
-                method: 'POST',
-                body: formData,
+            const response = await api.post('/resumes/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             });
 
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to process resume');
-            }
-
-            const resume = await response.json();
+            const resume = response.data;
             // Store the resume in state
             (window as any).__PENDING_RESUME__ = resume;
 
@@ -58,7 +55,7 @@ export function ResumeUploadGenerator({ onBack, onSuccess }: ResumeUploadGenerat
             }
         } catch (err: any) {
             setIsProcessing(false);
-            setError(err.message);
+            setError(err.response?.data?.error || err.message || 'Failed to process resume');
         }
     };
 

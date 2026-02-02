@@ -56,7 +56,7 @@ export function ResumeGenerator({ onBack, initialData, previewOnly = false }: Re
         const id = (window as any).__RESUME_ID__;
         if (!id) return alert('Please generate a resume first');
 
-        window.open(`http://localhost:5000/api/resumes/${id}/download`, '_blank');
+        window.open(`${process.env.NEXT_PUBLIC_API_URL}/resumes/${id}/download`, '_blank');
     };
 
     if (!isLoaded) {

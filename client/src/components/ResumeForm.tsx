@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ResumeData, Experience, Education } from '@/types/resume';
+import api from '@/lib/api';
 
 interface ResumeFormProps {
     data: Partial<ResumeData>;
@@ -36,30 +37,14 @@ export function ResumeForm({ data, setData, setIsGenerating, initialStep = 1 }: 
         setIsGenerating(true);
         try {
             // 1. Create/Update resume record
-            const createRes = await fetch('http://localhost:5000/api/resumes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            if (!createRes.ok) {
-                const errorData = await createRes.json();
-                throw new Error(errorData.error || 'Failed to create resume');
-            }
-            const resume = await createRes.json();
+            const createRes = await api.post('/resumes', data);
+            const resume = createRes.data;
 
             // 2. Generate tailored content
-            const generateRes = await fetch(`http://localhost:5000/api/resumes/${resume.id}/generate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ jobDescription: data.targetJobDescription })
+            const generateRes = await api.post(`/resumes/${resume.id}/generate`, {
+                jobDescription: data.targetJobDescription
             });
-
-            if (!generateRes.ok) {
-                const errorData = await generateRes.json();
-                throw new Error(errorData.error || 'Failed to generate content');
-            }
-            const tailored = await generateRes.json();
+            const tailored = generateRes.data;
 
             // 3. Update preview with tailored content
             setData(tailored.generatedContent);
@@ -67,7 +52,7 @@ export function ResumeForm({ data, setData, setIsGenerating, initialStep = 1 }: 
             (window as any).__RESUME_ID__ = resume.id;
         } catch (error: any) {
             console.error('Generation failed:', error);
-            alert(error.message || 'Generation failed. Please check your connection and try again.');
+            alert(error.response?.data?.error || error.message || 'Generation failed. Please check your connection and try again.');
         } finally {
             setIsGenerating(false);
             setStep(4); // Go back to skills step but now with categorized data
