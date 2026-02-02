@@ -32,11 +32,18 @@ export function ResumePreview({ data, isGenerating }: ResumePreviewProps) {
             <header className="text-center mb-10">
                 <h1 className="text-4xl font-bold tracking-tight mb-2 text-gray-900">{data.fullName || 'Your Name'}</h1>
                 <div className="text-sm flex flex-wrap justify-center gap-x-3 text-gray-500 font-medium">
-                    <span>{data.location}</span>
-                    {data.location && data.phone && <span className="text-gray-300">|</span>}
-                    <span>{data.phone}</span>
-                    {data.phone && data.email && <span className="text-gray-300">|</span>}
-                    <span>{data.email}</span>
+                    {[
+                        data.location,
+                        data.phone,
+                        data.email,
+                        data.linkedIn,
+                        data.website
+                    ].filter(Boolean).map((item, index, array) => (
+                        <div key={index} className="flex items-center gap-3">
+                            <span>{item}</span>
+                            {index < array.length - 1 && <span className="text-gray-300">|</span>}
+                        </div>
+                    ))}
                 </div>
             </header>
 

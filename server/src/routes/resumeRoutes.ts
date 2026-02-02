@@ -4,8 +4,11 @@ import { ResumeService } from '../services/ResumeService';
 import { ResumeRepository } from '../repositories/ResumeRepository';
 import { PdfService } from '../services/PdfService';
 import { LlmService } from '../services/LlmService';
+import multer from 'multer';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
+
 const resumeRepository = new ResumeRepository();
 const pdfService = new PdfService();
 const llmService = new LlmService();
@@ -16,6 +19,7 @@ router.post('/', (req: Request, res: Response) => resumeController.create(req, r
 router.get('/', (req: Request, res: Response) => resumeController.getAll(req, res));
 router.get('/:id', (req: Request, res: Response) => resumeController.getById(req, res));
 router.post('/:id/generate', (req: Request, res: Response) => resumeController.generate(req, res));
+router.post('/upload', upload.single('resume'), (req: Request, res: Response) => resumeController.uploadAndGenerate(req, res));
 router.get('/:id/download', (req: Request, res: Response) => resumeController.downloadPdf(req, res));
 router.delete('/:id', (req: Request, res: Response) => resumeController.delete(req, res));
 

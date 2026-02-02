@@ -43,7 +43,11 @@ export class LlmService implements ILlmService {
       4. SKILLS:
          - REMOVE technical and soft skills that are unrelated to the target job.
          - Categorize technical skills into logical professional groups (e.g., "Frontend", "Backend", "Tools", "Cloud").
-      5. PERSONAL INFO & EDUCATION: Keep exactly as provided.
+      5. PERSONAL INFO & EDUCATION: 
+         - Keep exactly as provided. 
+         - DO NOT ADD or INVENT any personal details (email, phone, linkedIn, location) if they are missing or empty in the source data. Leave them empty.
+         - NEVER use placeholders like "hello@reallygreatsite.com", "123 Anywhere St", "Any City", "123-456-7890".
+         - If the input data has these placeholders, REMOVE THEM.
       
       RETURN FORMAT:
       Return ONLY a valid JSON object matching the following structure. Do not include any markdown formatting like \`\`\`json.
@@ -92,6 +96,69 @@ export class LlmService implements ILlmService {
             }
             // Fallback to original resume if tailoring fails but log the error
             return resume;
+        }
+    }
+
+    async parseResume(resumeText: string): Promise<any> {
+        const prompt = `
+      You are an expert resume parser. Your task is to extract information from the provided RAW TEXT of a resume and organize it into a structured JSON format.
+      
+      RAW TEXT:
+      ${resumeText}
+      
+      CRITICAL INSTRUCTIONS:
+      1. Extract all personal information: fullName, email, phone, location, linkedIn, website.
+      2. Extract professional summary if present.
+      3. Extract work experience: company, role, duration, location, and bullet points.
+      4. Extract projects: title, description, technologies, and bullet points.
+      5. Extract skills: categorizing them into "technical" (with subcategories) and "soft" skills.
+      6. Extract education: institution, degree, graduationDate, location.
+      7. STRICTLY FOLLOW: 
+         - If a field (especially email, phone, linkedIn, location) is missing in the raw text, return it as an empty string (""). 
+         - DO NOT generate fake or placeholder data. 
+         - NEVER use placeholders like "hello@reallygreatsite.com", "123 Anywhere St", "Any City", "123-456-7890". 
+         - If you see these specific values in your internal processing, REPLACE them with empty strings.
+      
+      RETURN FORMAT:
+      Return ONLY a valid JSON object matching the following structure. Do not include any markdown formatting like \`\`\`json.
+      {
+        "fullName": "...",
+        "email": "...",
+        "phone": "...",
+        "location": "...",
+        "linkedIn": "...",
+        "website": "...",
+        "summary": "...",
+        "experience": [ { "company": "...", "role": "...", "duration": "...", "location": "...", "bullets": ["..."] } ],
+        "projects": [ { "title": "...", "description": "...", "technologies": ["..."], "bullets": ["..."] } ],
+        "skills": {
+          "technical": { "Category1": ["skill1", "skill2"], "Category2": ["skill3"] },
+          "soft": ["skill1", "skill2"]
+        },
+        "education": [ { "institution": "...", "degree": "...", "graduationDate": "...", "location": "..." } ]
+      }
+    `;
+
+        try {
+            const result = await this.model.generateContent({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: {
+                    temperature: 0.1,
+                    topP: 0.8,
+                    maxOutputTokens: 4096,
+                },
+            });
+
+            const response = await result.response;
+            const text = response.text().trim();
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Could not parse JSON from AI response');
+        } catch (error: any) {
+            console.error('Gemini API Error in parseResume:', error);
+            throw error;
         }
     }
 }

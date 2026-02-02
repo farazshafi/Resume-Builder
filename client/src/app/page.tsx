@@ -3,11 +3,14 @@
 import { useState } from 'react';
 import { Dashboard } from '@/components/Dashboard';
 import { ResumeGenerator } from '@/components/ResumeGenerator';
+import { ResumeUploadGenerator } from '@/components/ResumeUploadGenerator';
 import { CreateResumeOptions } from '@/components/CreateResumeOptions';
 
 export default function Home() {
-  const [view, setView] = useState<'dashboard' | 'manual'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'manual' | 'upload'>('dashboard');
   const [showOptions, setShowOptions] = useState(false);
+  const [tailoredData, setTailoredData] = useState<any>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   return (
     <main className="min-h-screen py-12 px-4 md:px-8 max-w-7xl mx-auto">
@@ -21,16 +24,46 @@ export default function Home() {
       </header>
 
       {view === 'dashboard' ? (
-        <Dashboard onCreateNew={() => setShowOptions(true)} />
+        <Dashboard
+          onCreateNew={() => setShowOptions(true)}
+          onSelect={(resume) => {
+            setTailoredData(resume);
+            setIsPreviewMode(false);
+            setView('manual');
+          }}
+        />
+      ) : view === 'manual' ? (
+        <ResumeGenerator
+          onBack={() => {
+            setView('dashboard');
+            setTailoredData(null);
+            setIsPreviewMode(false);
+          }}
+          initialData={tailoredData}
+          previewOnly={isPreviewMode}
+        />
       ) : (
-        <ResumeGenerator onBack={() => setView('dashboard')} />
+        <ResumeUploadGenerator
+          onBack={() => setView('dashboard')}
+          onSuccess={(resume) => {
+            console.log('Resume created:', resume);
+            setTailoredData(resume);
+            setIsPreviewMode(true);
+            setView('manual');
+          }}
+        />
       )}
 
       {showOptions && (
         <CreateResumeOptions
           onSelectManual={() => {
             setShowOptions(false);
+            setIsPreviewMode(false);
             setView('manual');
+          }}
+          onSelectUpload={() => {
+            setShowOptions(false);
+            setView('upload');
           }}
           onCancel={() => setShowOptions(false)}
         />
