@@ -7,136 +7,91 @@ export class LlmService implements ILlmService {
 
     constructor() {
         const apiKey = process.env.GEMINI_API_KEY || '';
+        if (!apiKey) console.error('GEMINI_API_KEY is missing in .env');
         this.genAI = new GoogleGenerativeAI(apiKey);
-        this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+        // Using Gemini 2.0 Flash for speed and robustness
+        this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     }
 
-    async optimizeBullets(bullets: string[], jobDescription: string): Promise<string[]> {
+    async tailorResume(resume: any, jobDescription: string): Promise<any> {
         if (!process.env.GEMINI_API_KEY) {
-            console.warn('GEMINI_API_KEY not found, returning original bullets');
-            return bullets;
+            console.warn('GEMINI_API_KEY not found, returning original resume');
+            return resume;
         }
 
         const prompt = `
-      You are an expert resume writer and career coach. 
-      Target Job Description: ${jobDescription}
+      You are an expert career coach and ATS optimization specialist. 
+      Your task is to tailor the provided resume DATA to the JOB DESCRIPTION using a SINGLE pass.
       
-      Rewrite the following resume bullet points to be more "humanized", achievement-oriented, and ATS-friendly. 
-      Follow the formula: Action Verb + Task + Impact. 
-      Align the wording with the keywords and responsibilities in the job description without lying.
+      JOB DESCRIPTION:
+      ${jobDescription}
       
-      Bullets:
-      ${bullets.join('\n')}
+      RESUME DATA:
+      ${JSON.stringify(resume, null, 2)}
       
-      Return ONLY the optimized bullet points, one per line, starting with a dash.
-    `;
-
-        try {
-            const result = await this.model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
-            return text.split('\n').filter((line: string) => line.trim().startsWith('-')).map((line: string) => line.replace(/^- /, '').trim());
-        } catch (error) {
-            console.error('Gemini API Error:', error);
-            return bullets;
-        }
-    }
-
-    async generateSummary(profile: any, jobDescription: string): Promise<string> {
-        if (!process.env.GEMINI_API_KEY) {
-            return `Results-oriented professional with experience tailored for this role.`;
-        }
-
-        const prompt = `
-      Generate a professional 2-3 sentence resume summary for a candidate with the following skills and background, tailored specifically for this job description.
+      CRITICAL INSTRUCTIONS:
+      1. SUMMARY: Generate a high-impact, professional 2-3 sentence summary (50-70 words) tailored to the job.
+      2. EXPERIENCE: 
+         - For EACH experience item, rewrite the bullets using the formula: Action Verb + Task + Impact. 
+         - Integrate keywords from the job description naturally.
+         - Maintain the original number of bullets unless they are completely irrelevant.
+      3. PROJECTS: 
+         - Analyze all projects provided.
+         - Select and KEEP only the TOP 3 most relevant projects for this specific job.
+         - COMPLETELY REMOVE projects that have zero relevance to the job requirements.
+         - Optimize the bullets for the remaining projects.
+      4. SKILLS:
+         - REMOVE technical and soft skills that are unrelated to the target job.
+         - Categorize technical skills into logical professional groups (e.g., "Frontend", "Backend", "Tools", "Cloud").
+      5. PERSONAL INFO & EDUCATION: Keep exactly as provided.
       
-      Candidate Background: ${JSON.stringify(profile)}
-      Job Description: ${jobDescription}
-      
-      Make it sound human, professional, and natural. Return ONLY the text of the summary.
-    `;
-
-        try {
-            const result = await this.model.generateContent(prompt);
-            const response = await result.response;
-            return response.text().trim();
-        } catch (error) {
-            console.error('Gemini API Error:', error);
-            return 'Professional dedicated to achieving excellence and contributing value in high-impact projects.';
-        }
-    }
-
-    async selectBestProjects(projects: any[], jobDescription: string): Promise<any[]> {
-        if (!process.env.GEMINI_API_KEY || projects.length <= 2) {
-            return projects.slice(0, 2);
-        }
-
-        const projectList = projects.map((p, i) => `${i}: ${p.title} - ${p.description}`).join('\n');
-        const prompt = `
-      Given the following list of projects and a target job description, select the TOP 2 projects that are most relevant and impactful for this role.
-      
-      Job Description: ${jobDescription}
-      
-      Projects:
-      ${projectList}
-      
-      Return ONLY a JSON array of the indices (e.g., [0, 2]).
-    `;
-
-        try {
-            const result = await this.model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text().trim();
-            const match = text.match(/\[.*\]/);
-            if (match) {
-                const indices = JSON.parse(match[0]);
-                return indices.map((i: number) => projects[i]).filter(Boolean);
-            }
-            return projects.slice(0, 2);
-        } catch (error) {
-            console.error('Gemini API Error selecting projects:', error);
-            return projects.slice(0, 2);
-        }
-    }
-
-    async optimizeSkills(skills: { technical: string[], soft: string[] }, jobDescription: string): Promise<{ technical: Record<string, string[]>, soft: string[] }> {
-        if (!process.env.GEMINI_API_KEY) {
-            return { technical: { "Technical Skills": skills.technical }, soft: skills.soft };
-        }
-
-        const prompt = `
-      Given the following technical and soft skills and a target job description:
-      1. Filter out technical skills that are NOT relevant to the job.
-      2. Categorize the remaining technical skills into logical groups (e.g., "Frontend", "Backend", "Languages", "Tools", "Cloud", etc.) that would look professional on a resume.
-      3. Filter out soft skills that are NOT relevant.
-
-      Job Description: ${jobDescription}
-      
-      Technical Skills: ${skills.technical.join(', ')}
-      Soft Skills: ${skills.soft.join(', ')}
-      
-      Return the result in the following JSON format ONLY:
+      RETURN FORMAT:
+      Return ONLY a valid JSON object matching the following structure. Do not include any markdown formatting like \`\`\`json.
       {
-        "technical": {
-          "Category Name": ["skill1", "skill2"],
-          "Another Category": ["skill3"]
+        "fullName": "...",
+        "email": "...",
+        "phone": "...",
+        "location": "...",
+        "linkedIn": "...",
+        "website": "...",
+        "summary": "...",
+        "experience": [ { "company": "...", "role": "...", "duration": "...", "location": "...", "bullets": ["..."] } ],
+        "projects": [ { "title": "...", "description": "...", "technologies": ["..."], "bullets": ["..."] } ],
+        "skills": {
+          "technical": { "Category1": ["skill1", "skill2"], "Category2": ["skill3"] },
+          "soft": ["skill1", "skill2"]
         },
-        "soft": ["skill1", "skill2"]
+        "education": [ { "institution": "...", "degree": "...", "graduationDate": "...", "location": "..." } ]
       }
     `;
 
         try {
-            const result = await this.model.generateContent(prompt);
+            const result = await this.model.generateContent({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: {
+                    temperature: 0.2, // Lower temperature for more consistent and structured JSON
+                    topP: 0.8,
+                    maxOutputTokens: 4096, // Increased to ensure long resumes aren't truncated
+                },
+            });
+
             const response = await result.response;
             const text = response.text().trim();
-            const match = text.match(/\{.*\}/s);
-            if (match) {
-                return JSON.parse(match[0]);
+
+            // Extract JSON from potential markdown backticks or just parse directly
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                return parsed;
             }
-            return { technical: { "Technical Skills": skills.technical }, soft: skills.soft };
-        } catch (error) {
-            console.error('Gemini API Error optimizing skills:', error);
-            return { technical: { "Technical Skills": skills.technical }, soft: skills.soft };
+            throw new Error('Could not parse JSON from AI response');
+        } catch (error: any) {
+            console.error('Gemini API Error in tailorResume:', error);
+            if (error.message?.includes('limit: 0')) {
+                throw new Error('AI Quota Error: Your API key has a "Limit 0" quota. Please ensure your project has a billing account or generate a new key.');
+            }
+            // Fallback to original resume if tailoring fails but log the error
+            return resume;
         }
     }
 }

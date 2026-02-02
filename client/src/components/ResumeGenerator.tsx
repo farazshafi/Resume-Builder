@@ -23,18 +23,11 @@ export function ResumeGenerator({ onBack }: ResumeGeneratorProps) {
 
     // Load from local storage on mount
     useEffect(() => {
-        const saved = localStorage.getItem('resume_builder_data');
+        const saved = localStorage.getItem('resumeData');
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
                 setData(prev => ({ ...prev, ...parsed }));
-
-                // Determine start step logic
-                // If we have basic info and at least one experience or education, assume we can skip to the end
-                // Or easier: if we have a name and email, defaulting to the last step is usually safe as the user can go back
-                if (parsed.fullName && parsed.email) {
-                    setInitialStep(5);
-                }
             } catch (e) {
                 console.error('Failed to parse saved resume data', e);
             }
@@ -45,7 +38,7 @@ export function ResumeGenerator({ onBack }: ResumeGeneratorProps) {
     // Save to local storage on change
     useEffect(() => {
         if (isLoaded) {
-            localStorage.setItem('resume_builder_data', JSON.stringify(data));
+            localStorage.setItem('resumeData', JSON.stringify(data));
         }
     }, [data, isLoaded]);
 

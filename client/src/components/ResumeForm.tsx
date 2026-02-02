@@ -70,6 +70,18 @@ export function ResumeForm({ data, setData, setIsGenerating, initialStep = 1 }: 
             alert(error.message || 'Generation failed. Please check your connection and try again.');
         } finally {
             setIsGenerating(false);
+            setStep(4); // Go back to skills step but now with categorized data
+        }
+    };
+
+    const handlePrevious = () => {
+        setStep(s => Math.max(s - 1, 1));
+    };
+
+    const handleReset = () => {
+        if (window.confirm('Are you sure you want to clear all data and start over?')) {
+            localStorage.removeItem('resumeData');
+            window.location.reload();
         }
     };
 
@@ -358,8 +370,19 @@ export function ResumeForm({ data, setData, setIsGenerating, initialStep = 1 }: 
                             <textarea
                                 className="input-field w-full h-32"
                                 placeholder="E.g. React, Node.js, TypeScript, Docker, etc. (comma separated)"
-                                value={data.skills?.technical.join(', ')}
-                                onChange={e => updateData({ skills: { ...data.skills!, technical: e.target.value.split(',').map(s => s.trim()) } })}
+                                value={
+                                    Array.isArray(data.skills?.technical)
+                                        ? data.skills?.technical.join(', ')
+                                        : typeof data.skills?.technical === 'object'
+                                            ? Object.values(data.skills.technical).flat().join(', ')
+                                            : ''
+                                }
+                                onChange={e => updateData({
+                                    skills: {
+                                        ...data.skills!,
+                                        technical: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                                    }
+                                })}
                             />
                         </div>
                         <div className="space-y-2">
@@ -367,8 +390,13 @@ export function ResumeForm({ data, setData, setIsGenerating, initialStep = 1 }: 
                             <textarea
                                 className="input-field w-full h-32"
                                 placeholder="E.g. Leadership, Communication, Problem Solving, etc. (comma separated)"
-                                value={data.skills?.soft.join(', ')}
-                                onChange={e => updateData({ skills: { ...data.skills!, soft: e.target.value.split(',').map(s => s.trim()) } })}
+                                value={Array.isArray(data.skills?.soft) ? data.skills?.soft.join(', ') : ''}
+                                onChange={e => updateData({
+                                    skills: {
+                                        ...data.skills!,
+                                        soft: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                                    }
+                                })}
                             />
                         </div>
                     </div>
@@ -388,13 +416,23 @@ export function ResumeForm({ data, setData, setIsGenerating, initialStep = 1 }: 
             </div>
 
             <div className="flex justify-between pt-8">
-                <button
-                    onClick={() => setStep(s => Math.max(s - 1, 1))}
-                    disabled={step === 1}
-                    className="btn-secondary disabled:opacity-50"
-                >
-                    Previous
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handlePrevious}
+                        disabled={step === 1}
+                        className="btn-secondary disabled:opacity-50"
+                    >
+                        Previous
+                    </button>
+                    {step === 1 && (
+                        <button
+                            onClick={handleReset}
+                            className="text-xs text-red-500 hover:text-red-400 px-4"
+                        >
+                            Start Over
+                        </button>
+                    )}
+                </div>
                 {step < totalSteps ? (
                     <button onClick={() => setStep(s => s + 1)} className="btn-primary">
                         Next Step

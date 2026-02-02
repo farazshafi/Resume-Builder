@@ -31,35 +31,11 @@ export class ResumeService implements IResumeService {
         const resume = await this.resumeRepository.findById(id);
         if (!resume) throw new Error('Resume not found');
 
-        const exp = (resume.experience as any[]) || [];
-        const optimizedExp = await Promise.all(
-            exp.map(async (item) => ({
-                ...item,
-                bullets: await this.llmService.optimizeBullets(item.bullets || [], jobDescription)
-            }))
-        );
-
-        const projects = (resume.projects as any[]) || [];
-        const bestProjects = await this.llmService.selectBestProjects(projects, jobDescription);
-        const optimizedProjects = await Promise.all(
-            bestProjects.map(async (proj) => ({
-                ...proj,
-                bullets: await this.llmService.optimizeBullets(proj.bullets || [], jobDescription)
-            }))
-        );
-
-        const optimizedSkills = await this.llmService.optimizeSkills(resume.skills, jobDescription);
+        const tailoredResume = await this.llmService.tailorResume(resume, jobDescription);
 
         const tailoredContent = {
-            ...resume,
             targetJobDescription: jobDescription,
-            generatedContent: {
-                ...resume,
-                experience: optimizedExp.length > 0 ? optimizedExp : undefined,
-                projects: optimizedProjects.length > 0 ? optimizedProjects : undefined,
-                skills: optimizedSkills,
-                summary: await this.llmService.generateSummary(resume, jobDescription)
-            }
+            generatedContent: tailoredResume
         };
 
         return this.resumeRepository.update(id, tailoredContent);
@@ -69,7 +45,8 @@ export class ResumeService implements IResumeService {
         const resume = await this.resumeRepository.findById(id);
         if (!resume) throw new Error('Resume not found');
 
-        const html = resumeTemplate(resume);
+        const contentToRender = resume.generatedContent || resume;
+        const html = resumeTemplate(contentToRender);
         return this.pdfService.generatePdf(html);
     }
 }
