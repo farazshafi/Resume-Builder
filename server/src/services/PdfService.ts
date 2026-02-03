@@ -3,7 +3,10 @@ import { IPdfService } from '../interfaces/IPdfService';
 
 export class PdfService implements IPdfService {
     async generatePdf(htmlContent: string): Promise<Buffer> {
-        const browser = await puppeteer.launch({ headless: true });
+        const browser = await puppeteer.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
         const page = await browser.newPage();
         await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
         const pdf = await page.pdf({
