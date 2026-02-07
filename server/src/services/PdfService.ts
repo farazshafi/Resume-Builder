@@ -7,12 +7,10 @@ export class PdfService implements IPdfService {
     async generatePdf(htmlContent: string): Promise<Buffer> {
         let browser;
         try {
-            // Locally, we might need an explicit path to the browser shell we installed
-            const localPath = path.join(process.cwd(), '.cache/puppeteer/chrome-headless-shell/win64-143.0.7499.192/chrome-headless-shell-win64/chrome-headless-shell.exe');
-            const executablePath = fs.existsSync(localPath) ? localPath : undefined;
+            const isProduction = process.env.NODE_ENV === 'production';
 
             browser = await puppeteer.launch({
-                executablePath,
+                executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
                 headless: 'shell',
                 args: [
                     '--no-sandbox',
@@ -20,8 +18,8 @@ export class PdfService implements IPdfService {
                     '--disable-dev-shm-usage',
                     '--disable-gpu',
                     '--no-zygote',
-                    '--single-process'
-                ]
+                    isProduction ? '--single-process' : undefined
+                ].filter(Boolean) as string[]
             });
             const page = await browser.newPage();
             await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
