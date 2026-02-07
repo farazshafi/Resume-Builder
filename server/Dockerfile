@@ -24,9 +24,13 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY prisma ./prisma/
 
 # Install dependencies
 RUN npm install
+
+# Generate Prisma Client
+RUN npx prisma generate
 
 # Copy the rest of the application
 COPY . .
@@ -43,4 +47,5 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     NODE_ENV=production
 
 # Start the application
+# Using node to run the built files if possible, or sticking with tsx if that's the preferred start method
 CMD ["npm", "start"]
