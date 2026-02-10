@@ -37,8 +37,15 @@ export function ResumeForm({ data, setData, setIsGenerating, initialStep = 1 }: 
         setIsGenerating(true);
         try {
             // 1. Create/Update resume record
-            const createRes = await api.post('/resumes', data);
-            const resume = createRes.data;
+            let resume;
+            if (data.id || (window as any).__RESUME_ID__) {
+                const id = data.id || (window as any).__RESUME_ID__;
+                const updateRes = await api.put(`/resumes/${id}`, data);
+                resume = updateRes.data;
+            } else {
+                const createRes = await api.post('/resumes', data);
+                resume = createRes.data;
+            }
 
             // 2. Generate tailored content
             const generateRes = await api.post(`/resumes/${resume.id}/generate`, {
@@ -56,6 +63,23 @@ export function ResumeForm({ data, setData, setIsGenerating, initialStep = 1 }: 
         } finally {
             setIsGenerating(false);
             setStep(4); // Go back to skills step but now with categorized data
+        }
+    };
+
+    const handleUpdate = async () => {
+        const id = data.id || (window as any).__RESUME_ID__;
+        if (!id) return handleGenerate();
+
+        setIsGenerating(true);
+        try {
+            const response = await api.put(`/resumes/${id}`, data);
+            setData(response.data.generatedContent || response.data);
+            alert('Resume updated successfully!');
+        } catch (error: any) {
+            console.error('Update failed:', error);
+            alert(error.response?.data?.error || error.message || 'Update failed.');
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -423,9 +447,22 @@ export function ResumeForm({ data, setData, setIsGenerating, initialStep = 1 }: 
                         Next Step
                     </button>
                 ) : (
-                    <button onClick={handleGenerate} className="btn-primary bg-linear-to-r from-blue-500 to-purple-600 border-none shadow-blue-600/20">
-                        Generate Resume
-                    </button>
+                    <div className="flex gap-4">
+                        {(data.id || (window as any).__RESUME_ID__) && (
+                            <button
+                                onClick={handleUpdate}
+                                className="btn-secondary whitespace-nowrap"
+                            >
+                                Update & Save
+                            </button>
+                        )}
+                        <button
+                            onClick={handleGenerate}
+                            className="btn-primary bg-linear-to-r from-blue-500 to-purple-600 border-none shadow-blue-600/20 whitespace-nowrap"
+                        >
+                            {(data.id || (window as any).__RESUME_ID__) ? 'Regenerate with AI' : 'Generate Resume'}
+                        </button>
+                    </div>
                 )}
             </div>
         </div>

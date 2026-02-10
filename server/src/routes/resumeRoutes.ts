@@ -21,6 +21,7 @@ router.get('/:id', (req: Request, res: Response) => resumeController.getById(req
 router.post('/:id/generate', (req: Request, res: Response) => resumeController.generate(req, res));
 router.post('/upload', upload.single('resume'), (req: Request, res: Response) => resumeController.uploadAndGenerate(req, res));
 router.get('/:id/download', (req: Request, res: Response) => resumeController.downloadPdf(req, res));
+router.put('/:id', (req: Request, res: Response) => resumeController.update(req, res));
 router.delete('/:id', (req: Request, res: Response) => resumeController.delete(req, res));
 
 export default router;

@@ -6,11 +6,6 @@ import { resumeTemplate } from '../utils/templates';
 import { v2 as cloudinary } from 'cloudinary';
 const pdf = require('pdf-parse');
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
 
 export class ResumeService implements IResumeService {
     constructor(
@@ -33,6 +28,16 @@ export class ResumeService implements IResumeService {
 
     async deleteResume(id: string): Promise<any> {
         return this.resumeRepository.delete(id);
+    }
+
+    async updateResume(id: string, data: any): Promise<any> {
+        // When manually updating, also update the generatedContent to reflect the changes
+        // This ensures that PDF generation uses the latest manual edits
+        const updatedData = {
+            ...data,
+            generatedContent: data // Sync generatedContent with the latest data
+        };
+        return this.resumeRepository.update(id, updatedData);
     }
 
     async generateTailoredResume(id: string, jobDescription: string): Promise<any> {
@@ -115,7 +120,23 @@ export class ResumeService implements IResumeService {
         return resume;
     }
 
+    private configureCloudinary() {
+        if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+            console.error('Cloudinary credentials missing:', {
+                cloud_name: !!process.env.CLOUDINARY_CLOUD_NAME,
+                api_key: !!process.env.CLOUDINARY_API_KEY,
+                api_secret: !!process.env.CLOUDINARY_API_SECRET
+            });
+        }
+        cloudinary.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET
+        });
+    }
+
     async generatePdf(id: string): Promise<{ buffer?: Buffer, url?: string }> {
+        this.configureCloudinary();
         const resume = await this.resumeRepository.findById(id);
         if (!resume) throw new Error('Resume not found');
 
@@ -140,6 +161,9 @@ export class ResumeService implements IResumeService {
         // Upload to Cloudinary and save URL
         try {
             const uploadPromise = new Promise((resolve, reject) => {
+                // Ensure config is set right before upload stream creation
+                this.configureCloudinary();
+
                 const uploadStream = cloudinary.uploader.upload_stream(
                     {
                         folder: 'resumes',

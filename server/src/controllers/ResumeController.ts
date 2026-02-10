@@ -89,6 +89,16 @@ export class ResumeController {
         }
     }
 
+    async update(req: Request, res: Response) {
+        try {
+            const id = req.params.id as string;
+            const resume = await this.resumeService.updateResume(id, req.body);
+            res.status(200).json(resume);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
     async uploadAndGenerate(req: Request, res: Response) {
         try {
             console.log('Received upload request:', {
