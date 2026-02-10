@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ResumeForm } from './ResumeForm';
 import { ResumePreview } from './ResumePreview';
 import { ResumeData } from '@/types/resume';
+import api from '@/lib/api';
 
 interface ResumeGeneratorProps {
     onBack: () => void;
@@ -53,17 +54,28 @@ export function ResumeGenerator({ onBack, initialData, previewOnly = false }: Re
     }, [data, isLoaded]);
 
     const handleDownload = async () => {
-        const id = (window as any).__RESUME_ID__;
-        if (!id) return alert('Please generate a resume first');
+        const id = (window as any).__RESUME_ID__ || data.id;
+        if (!id) return alert('Please generate or save a resume first');
 
-        const url = `${process.env.NEXT_PUBLIC_API_URL}/resumes/${id}/download`;
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `resume_${id}.pdf`;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        setIsGenerating(true);
+        try {
+            // Save current data first to ensure PDF is up-to-date
+            await api.put(`/resumes/${id}`, data);
+
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/resumes/${id}/download`;
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `resume_${id}.pdf`;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error: any) {
+            console.error('Download failed:', error);
+            alert('Failed to update resume before download.');
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     if (!isLoaded) {
