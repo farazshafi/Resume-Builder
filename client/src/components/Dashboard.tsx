@@ -7,7 +7,7 @@ import api from '@/lib/api';
 
 interface DashboardProps {
     onCreateNew: () => void;
-    onSelect: (resume: any) => void;
+    onSelect: (resume: any, isPreview: boolean) => void;
 }
 
 export function Dashboard({ onCreateNew, onSelect }: DashboardProps) {
@@ -53,7 +53,12 @@ export function Dashboard({ onCreateNew, onSelect }: DashboardProps) {
 
     const handleView = (id: string) => {
         const resume = resumes.find(r => r.id === id);
-        if (resume) onSelect(resume);
+        if (resume) onSelect(resume, true);
+    };
+
+    const handleEdit = (id: string) => {
+        const resume = resumes.find(r => r.id === id);
+        if (resume) onSelect(resume, false);
     };
 
     if (loading) return (
@@ -112,6 +117,7 @@ export function Dashboard({ onCreateNew, onSelect }: DashboardProps) {
                             resume={resume}
                             onDelete={handleDelete}
                             onView={handleView}
+                            onEdit={handleEdit}
                         />
                     ))}
                 </div>

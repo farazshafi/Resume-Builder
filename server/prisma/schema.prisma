@@ -34,4 +34,5 @@ model Resume {
   
   // Final optimized content
   generatedContent     Json?    
+  pdfUrl               String?
 }
