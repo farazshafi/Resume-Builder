@@ -24,7 +24,6 @@
     "multer": "^2.0.2",
     "pdf-parse": "^1.1.1",
     "puppeteer": "^24.37.2",
-    "redis": "^5.10.0",
     "tsx": "^4.19.2"
   },
   "devDependencies": {

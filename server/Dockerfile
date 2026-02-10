@@ -3,11 +3,12 @@ FROM node:20-slim
 
 # Install system dependencies for Puppeteer/Chrome
 RUN apt-get update && apt-get install -y \
-    gpg \
-    curl \
+    wget \
+    gnupg \
+    ca-certificates \
     --no-install-recommends \
-    && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrome-linux-keyring.gpg \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt-get update && apt-get install -y \
     google-chrome-stable \
     fonts-ipafont-gothic \
@@ -22,6 +23,10 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
+# Set environment variables for Puppeteer
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
@@ -30,7 +35,7 @@ COPY prisma ./prisma/
 RUN npm install
 
 # Generate Prisma Client
-RUN npx prisma generate
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma@6 generate
 
 # Copy the rest of the application
 COPY . .
@@ -41,11 +46,8 @@ RUN npm run build
 # Expose the port
 EXPOSE 5000
 
-# Set environment variables for Puppeteer
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable \
-    NODE_ENV=production
+# Set environment variables for production
+ENV NODE_ENV=production
 
 # Start the application
-# Using node to run the built files if possible, or sticking with tsx if that's the preferred start method
 CMD ["npm", "start"]
