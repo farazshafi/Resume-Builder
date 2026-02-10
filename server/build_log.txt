@@ -1,0 +1,84 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.35kB 0.0s done
+#1 DONE 0.1s
+
+#2 [internal] load metadata for docker.io/library/node:20-slim
+#2 ...
+
+#3 [auth] library/node:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:20-slim
+#2 DONE 3.4s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 149B 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 DONE 0.0s
+
+#6 [1/9] FROM docker.io/library/node:20-slim@sha256:c6585df72c34172bebd8d36abed961e231d7d3b5cee2e01294c4495e8a03f687
+#6 resolve docker.io/library/node:20-slim@sha256:c6585df72c34172bebd8d36abed961e231d7d3b5cee2e01294c4495e8a03f687 0.1s done
+#6 DONE 0.1s
+
+#5 [internal] load build context
+#5 transferring context: 2.25kB 0.0s done
+#5 DONE 0.1s
+
+#7 [2/9] RUN apt-get update && apt-get install -y     wget     gnupg     ca-certificates     --no-install-recommends     && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'     && apt-get update && apt-get install -y     google-chrome-stable     fonts-ipafont-gothic     fonts-wqy-zenhei     fonts-thai-tlwg     fonts-kacst     fonts-freefont-ttf     libxss1     --no-install-recommends     && rm -rf /var/lib/apt/lists/*
+#7 CACHED
+
+#8 [3/9] WORKDIR /app
+#8 CACHED
+
+#9 [4/9] COPY package*.json ./
+#9 CACHED
+
+#10 [5/9] COPY prisma ./prisma/
+#10 CACHED
+
+#11 [6/9] RUN npm install
+#11 CACHED
+
+#12 [7/9] RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
+#12 4.304 npm warn exec The following package was not found and will be installed: prisma@7.3.0
+#12 44.01 Prisma schema loaded from prisma/schema.prisma.
+#12 44.01 Error: Prisma schema validation - (get-config wasm)
+#12 44.01 Error code: P1012
+#12 44.01 error: The datasource property `url` is no longer supported in schema files. Move connection URLs for Migrate to `prisma.config.ts` and pass either `adapter` for a direct database connection or `accelerateUrl` for Accelerate to the `PrismaClient` constructor. See https://pris.ly/d/config-datasource and https://pris.ly/d/prisma7-client-config
+#12 44.01   -->  prisma/schema.prisma:7
+#12 44.01    | 
+#12 44.01  6 |   provider = "postgresql"
+#12 44.01  7 |   url      = env("DATABASE_URL")
+#12 44.01    | 
+#12 44.01 
+#12 44.01 Validation Error Count: 1
+#12 44.01 [Context: getConfig]
+#12 44.01 
+#12 44.01 Prisma CLI Version : 7.3.0
+#12 ERROR: process "/bin/sh -c DATABASE_URL=\"postgresql://dummy:dummy@localhost:5432/dummy\" npx prisma generate" did not complete successfully: exit code: 1
+------
+ > [7/9] RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate:
+44.01   -->  prisma/schema.prisma:7
+44.01    | 
+44.01  6 |   provider = "postgresql"
+44.01  7 |   url      = env("DATABASE_URL")
+44.01    | 
+44.01 
+44.01 Validation Error Count: 1
+44.01 [Context: getConfig]
+44.01 
+44.01 Prisma CLI Version : 7.3.0
+------
+Dockerfile:39
+--------------------
+  37 |     
+  38 |     # Generate Prisma Client
+  39 | >>> RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
+  40 |     
+  41 |     # Copy the rest of the application
+--------------------
+ERROR: failed to solve: process "/bin/sh -c DATABASE_URL=\"postgresql://dummy:dummy@localhost:5432/dummy\" npx prisma generate" did not complete successfully: exit code: 1
