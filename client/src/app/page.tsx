@@ -26,9 +26,9 @@ export default function Home() {
       {view === 'dashboard' ? (
         <Dashboard
           onCreateNew={() => setShowOptions(true)}
-          onSelect={(resume) => {
+          onSelect={(resume, isPreview) => {
             setTailoredData(resume);
-            setIsPreviewMode(false);
+            setIsPreviewMode(isPreview);
             setView('manual');
           }}
         />

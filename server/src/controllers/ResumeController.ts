@@ -47,13 +47,33 @@ export class ResumeController {
     async downloadPdf(req: Request, res: Response) {
         try {
             const id = req.params.id as string;
-            const pdf = await this.resumeService.generatePdf(id);
-            res.set({
-                'Content-Type': 'application/pdf',
-                'Content-Disposition': `attachment; filename=resume.pdf`,
-                'Content-Length': pdf.length
-            });
-            res.send(pdf);
+            const result = await this.resumeService.generatePdf(id);
+
+            if (result.url) {
+                // Prefer sending the buffer directly if we just generated it
+                if (result.buffer) {
+                    res.set({
+                        'Content-Type': 'application/pdf',
+                        'Content-Disposition': `inline; filename=resume.pdf`,
+                        'Content-Length': result.buffer.length
+                    });
+                    return res.send(result.buffer);
+                }
+
+                res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                return res.redirect(result.url);
+            }
+
+            if (result.buffer) {
+                res.set({
+                    'Content-Type': 'application/pdf',
+                    'Content-Disposition': `attachment; filename=resume.pdf`,
+                    'Content-Length': result.buffer.length
+                });
+                return res.send(result.buffer);
+            }
+
+            throw new Error('Failed to generate or retrieve PDF');
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }

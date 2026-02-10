@@ -56,7 +56,14 @@ export function ResumeGenerator({ onBack, initialData, previewOnly = false }: Re
         const id = (window as any).__RESUME_ID__;
         if (!id) return alert('Please generate a resume first');
 
-        window.open(`${process.env.NEXT_PUBLIC_API_URL}/resumes/${id}/download`, '_blank');
+        const url = `${process.env.NEXT_PUBLIC_API_URL}/resumes/${id}/download`;
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `resume_${id}.pdf`;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     if (!isLoaded) {

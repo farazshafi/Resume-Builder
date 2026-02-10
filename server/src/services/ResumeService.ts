@@ -3,7 +3,14 @@ import { IResumeRepository } from '../interfaces/IResumeRepository';
 import { IPdfService } from '../interfaces/IPdfService';
 import { ILlmService } from '../interfaces/ILlmService';
 import { resumeTemplate } from '../utils/templates';
+import { v2 as cloudinary } from 'cloudinary';
 const pdf = require('pdf-parse');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 export class ResumeService implements IResumeService {
     constructor(
@@ -108,12 +115,58 @@ export class ResumeService implements IResumeService {
         return resume;
     }
 
-    async generatePdf(id: string): Promise<Buffer> {
+    async generatePdf(id: string): Promise<{ buffer?: Buffer, url?: string }> {
         const resume = await this.resumeRepository.findById(id);
         if (!resume) throw new Error('Resume not found');
 
+        // Return existing URL if available (and skip legacy broken or 'raw' URLs)
+        if (resume.pdfUrl && !resume.pdfUrl.includes('/raw/upload/') && !resume.pdfUrl.includes('/image/upload/')) {
+            // We only trust the URL if it was uploaded with 'auto' (which Cloudinary represents differently sometimes)
+            // But to be safe and clear the current error, let's force re-upload for all current URLs once
+            // return { url: resume.pdfUrl };
+        }
+        // Force re-generation for now to fix the user's broken links
+
         const contentToRender = resume.generatedContent || resume;
         const html = resumeTemplate(contentToRender);
-        return this.pdfService.generatePdf(html);
+        const buffer = await this.pdfService.generatePdf(html);
+        console.log(`Generated PDF buffer size for resume ${id}: ${buffer.length} bytes`);
+        console.log(`Buffer start: ${buffer.slice(0, 10).toString('hex')} (${buffer.slice(0, 5).toString()})`);
+
+        if (buffer.length < 100 || !buffer.toString().startsWith('%PDF-')) {
+            throw new Error('Generated PDF is invalid or corrupted');
+        }
+
+        // Upload to Cloudinary and save URL
+        try {
+            const uploadPromise = new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: 'resumes',
+                        resource_type: 'raw', // Instruction 1: Set resource_type to 'raw'
+                        public_id: `resume_${id}.pdf`, // Instruction 2: Ensure public_id ends with .pdf
+                        overwrite: true,
+                        invalidate: true
+                    },
+                    (error, result) => {
+                        if (error) {
+                            console.error('Cloudinary internal error:', error);
+                            reject(error);
+                        } else {
+                            resolve(result);
+                        }
+                    }
+                );
+                uploadStream.end(buffer);
+            });
+
+            const result: any = await uploadPromise;
+            await this.resumeRepository.update(id, { pdfUrl: result.secure_url });
+            return { buffer, url: result.secure_url };
+        } catch (error) {
+            console.error('Cloudinary upload error:', error);
+            // Fallback to returning buffer if upload fails
+            return { buffer };
+        }
     }
 }

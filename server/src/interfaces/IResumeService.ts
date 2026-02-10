@@ -5,5 +5,5 @@ export interface IResumeService {
     createResume(data: any): Promise<any>;
     uploadAndGenerate(fileBuffer: Buffer, jobDescription: string): Promise<any>;
     deleteResume(id: string): Promise<any>;
-    generatePdf(id: string): Promise<Buffer>;
+    generatePdf(id: string): Promise<{ buffer?: Buffer, url?: string }>;
 }
